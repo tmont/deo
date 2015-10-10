@@ -20,8 +20,10 @@
 		"browserify-shim": "3.8.10",
 		"chalk": "1.1.1",
 		"commander": "2.8.1",
+		"extend": "3.0.0",
 		"fs-extra": "0.24.0",
 		"gargoyle": "0.3.6",
+		"glob": "5.0.15",
 		"less": "2.5.3",
 		"looger": "1.0.0"
 	},

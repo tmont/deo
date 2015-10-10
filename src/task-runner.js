@@ -1,19 +1,6 @@
 var async = require('async'),
 	RunContext = require('./run-context');
 
-/*
-{
-	copy: {
-		copyStatic: {
-			dependentTasks: [ 'init', 'clean' ],
-			src: '',
-			dest: ''
-		}
-	}
-}
-
- */
-
 function TaskRunner(context) {
 	if (!context || !(context instanceof RunContext)) {
 		throw new Error('context must be an instance of RunContext');

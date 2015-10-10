@@ -1,14 +1,16 @@
-function RunContext(log, parent) {
-	if (!log) {
-		throw new Error('A log is required');
-	}
+var Util = require('./util'),
+	Logger = require('looger').Logger;
+
+function RunContext(log, parent, options) {
+	options = options || {};
 
 	this.started = null;
 	this.ended = null;
 	this.parent = parent;
 	this.items = parent ? parent.items : {};
 	this.childContexts = [];
-	this.log = log;
+	this.log = log || Logger.noop;
+	this.util = new Util(options.cwd);
 }
 
 RunContext.prototype = {
