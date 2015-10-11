@@ -1,15 +1,13 @@
-function Task(name, definition, dependentTasks, options) {
+var extend = require('extend');
+
+function Task(name, dependentTasks, options) {
 	if (!name) {
 		throw new Error('A name is required');
-	}
-	if (!definition || typeof(definition) !== 'function') {
-		throw new Error('A definition function is required');
 	}
 
 	options = options || {};
 
 	this.name = name;
-	this.definition = definition;
 	this.dependentTasks = dependentTasks || [];
 	this.options = options;
 	if (this.options.src) {
@@ -20,12 +18,15 @@ function Task(name, definition, dependentTasks, options) {
 }
 
 Task.prototype = {
+	exec: function() {
+
+	},
 	isAsync: function() {
-		return this.definition && this.definition.length === 2;
+		return this.exec.length === 2;
 	}
 };
 
-Task.extend = function(ctor) {
+Task.extend = function(ctor, proto) {
 	ctor.prototype = Object.create(Task.prototype, {
 		constructor: {
 			value: ctor,
@@ -34,6 +35,8 @@ Task.extend = function(ctor) {
 			configurable: true
 		}
 	});
+
+	extend(ctor.prototype, proto);
 };
 
 module.exports = Task;

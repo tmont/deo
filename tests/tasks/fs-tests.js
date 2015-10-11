@@ -51,7 +51,7 @@ describe('File system tasks', function() {
 			var task = new DeleteTask(singleFile),
 				context = new RunContext();
 
-			task.definition(context, function(err, files) {
+			task.exec(context, function(err, files) {
 				should.not.exist(err);
 				files.should.have.length(1);
 				verifyDeleted(singleFile, done);
@@ -62,7 +62,7 @@ describe('File system tasks', function() {
 			var task = new DeleteTask(nestedDir),
 				context = new RunContext();
 
-			task.definition(context, function(err, files) {
+			task.exec(context, function(err, files) {
 				should.not.exist(err);
 				files.should.have.length(1);
 				verifyDeleted(nestedDir, done);
@@ -73,7 +73,7 @@ describe('File system tasks', function() {
 			var task = new DeleteTask(rootDir + '/**/*.txt'),
 				context = new RunContext();
 
-			task.definition(context, function(err, files) {
+			task.exec(context, function(err, files) {
 				should.not.exist(err);
 				files.should.have.length(2);
 				verifyDeleted([ singleFile, nestedFile ], done);
@@ -84,14 +84,14 @@ describe('File system tasks', function() {
 			var task = new DeleteTask('single*', { cwd: nestedDir }),
 				context = new RunContext();
 
-			task.definition(context, function(err, files) {
+			task.exec(context, function(err, files) {
 				should.not.exist(err);
 				files.should.have.length(0);
 
 				var task = new DeleteTask('single*', { cwd: rootDir }),
 					context = new RunContext();
 
-				task.definition(context, function(err, files) {
+				task.exec(context, function(err, files) {
 					should.not.exist(err);
 					files.should.have.length(1);
 					verifyDeleted(singleFile, done);
@@ -148,7 +148,7 @@ describe('File system tasks', function() {
 			var task = new CopyTask(singleFile, dest),
 				context = new RunContext();
 
-			task.definition(context, function(err, files) {
+			task.exec(context, function(err, files) {
 				should.not.exist(err);
 				files.should.have.length(1);
 				verifyExists([ singleFile, dest ], done);
@@ -159,7 +159,7 @@ describe('File system tasks', function() {
 			var task = new CopyTask(singleFile, nestedDir),
 				context = new RunContext();
 
-			task.definition(context, function(err, files) {
+			task.exec(context, function(err, files) {
 				should.not.exist(err);
 				files.should.have.length(1);
 				verifyExists([singleFile, path.join(nestedDir, path.basename(singleFile)) ], done);
@@ -171,7 +171,7 @@ describe('File system tasks', function() {
 			var task = new CopyTask(nestedDir, dest),
 				context = new RunContext();
 
-			task.definition(context, function(err, files) {
+			task.exec(context, function(err, files) {
 				should.not.exist(err);
 				files.should.have.length(1);
 				verifyExists([ nestedDir, dest, path.join(dest, 'dir2', 'file.txt') ], done);
@@ -183,7 +183,7 @@ describe('File system tasks', function() {
 			var task = new CopyTask(nestedDir, dest),
 				context = new RunContext();
 
-			task.definition(context, function(err, files) {
+			task.exec(context, function(err, files) {
 				should.not.exist(err);
 				files.should.have.length(1);
 				verifyExists([nestedDir, dest, path.join(dest, 'dir2', 'file.txt')], done);
@@ -195,7 +195,7 @@ describe('File system tasks', function() {
 			var task = new CopyTask('*.txt', dest, { cwd: rootDir }),
 				context = new RunContext();
 
-			task.definition(context, function(err, files) {
+			task.exec(context, function(err, files) {
 				should.not.exist(err);
 				files.should.have.length(2);
 				verifyExists([ singleFile, otherFile, path.join(dest, 'other.txt'), path.join(dest, 'single.txt') ], done);
@@ -206,7 +206,7 @@ describe('File system tasks', function() {
 			var task = new CopyTask(nestedDir, singleFile),
 				context = new RunContext();
 
-			task.definition(context, function(err) {
+			task.exec(context, function(err) {
 				should.exist(err);
 				err.should.have.property('message', 'Cannot map source directory to destination that is not a directory');
 				done();

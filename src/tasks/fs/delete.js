@@ -5,10 +5,17 @@ var Task = require('../../task'),
 
 function DeleteTask(src, options) {
 	options = options || {};
-	var self = this;
+	Task.call(this, 'del', [], {
+		src: src,
+		cwd: options.cwd || null
+	});
+}
 
-	function definition(context, callback) {
-		var options = { cwd: self.options.cwd };
+Task.extend(DeleteTask, {
+	exec: function(context, callback) {
+		var options = { cwd: this.options.cwd },
+			src = this.options.src;
+
 		context.util.file.expand(src, options, function(err, files) {
 			if (err) {
 				callback(err);
@@ -31,13 +38,6 @@ function DeleteTask(src, options) {
 			});
 		});
 	}
-
-	Task.call(this, 'del', definition, [], {
-		src: src,
-		cwd: options.cwd || null
-	});
-}
-
-Task.extend(DeleteTask);
+});
 
 module.exports = DeleteTask;

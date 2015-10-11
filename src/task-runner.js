@@ -56,7 +56,7 @@ TaskRunner.prototype = {
 			}
 
 			if (task.isAsync()) {
-				task.definition.call(self, self.context, function(err) {
+				task.exec(self.context, function(err) {
 					if (err) {
 						finish(err);
 						return;
@@ -66,7 +66,7 @@ TaskRunner.prototype = {
 				});
 			} else {
 				try {
-					task.definition.call(self, self.context);
+					task.exec(self.context);
 				} catch (err) {
 					finish(err);
 					return;

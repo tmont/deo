@@ -12,12 +12,19 @@ function CopyTask(src, dest, options) {
 		throw new Error('dest is required');
 	}
 	options = options || {};
-	var self = this;
 
-	function definition(context, callback) {
-		var options = { cwd: self.options.cwd };
+	Task.call(this, 'copy', [], {
+		src: src,
+		dest: dest,
+		cwd: options.cwd || null
+	});
+}
 
-		var src = self.options.src;
+Task.extend(CopyTask, {
+	exec: function(context, callback) {
+		var options = { cwd: this.options.cwd},
+			src = this.options.src,
+			dest = this.options.dest;
 
 		context.util.file.expandAndMap(src, options, dest, function(err, srcMaps) {
 			if (err) {
@@ -47,14 +54,6 @@ function CopyTask(src, dest, options) {
 			});
 		});
 	}
-
-	Task.call(this, 'copy', definition, [], {
-		src: src,
-		dest: dest,
-		cwd: options.cwd || null
-	});
-}
-
-Task.extend(CopyTask);
+});
 
 module.exports = CopyTask;
