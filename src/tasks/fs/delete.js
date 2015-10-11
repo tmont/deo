@@ -26,6 +26,7 @@ function DeleteTask(src, options) {
 					return;
 				}
 
+				context.log.info('Deleted ' + chalk.bold(files.length) + 'file' + (files.length === 1 ? '' : 's'));
 				callback(null, files);
 			});
 		});
@@ -36,5 +37,7 @@ function DeleteTask(src, options) {
 		cwd: options.cwd || null
 	});
 }
+
+Task.extend(DeleteTask);
 
 module.exports = DeleteTask;

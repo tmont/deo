@@ -12,6 +12,11 @@ function Task(name, definition, dependentTasks, options) {
 	this.definition = definition;
 	this.dependentTasks = dependentTasks || [];
 	this.options = options;
+	if (this.options.src) {
+		if (!Array.isArray(this.options.src)) {
+			this.options.src = [ this.options.src ];
+		}
+	}
 }
 
 Task.prototype = {
@@ -20,5 +25,15 @@ Task.prototype = {
 	}
 };
 
+Task.extend = function(ctor) {
+	ctor.prototype = Object.create(Task.prototype, {
+		constructor: {
+			value: ctor,
+			enumerable: false,
+			writable: true,
+			configurable: true
+		}
+	});
+};
 
 module.exports = Task;
