@@ -75,7 +75,7 @@ Task.extend(BrowserifyTask, {
 					return;
 				}
 
-				var options = extend(self.options.browserifyOpts, {
+				var options = extend({}, self.options.browserifyOpts, {
 					entries: entries
 				});
 
