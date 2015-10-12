@@ -1,4 +1,5 @@
 var async = require('async'),
+	domain = require('domain'),
 	RunContext = require('./run-context');
 
 function TaskRunner(context) {
@@ -40,14 +41,17 @@ TaskRunner.prototype = {
 
 		async.eachSeries(task.dependentTasks, runDependentTask, function(err) {
 			function finish(err) {
-				if (err) {
-					self.setState(TaskRunner.state.erred);
-					callback(err);
-					return;
-				}
+				task.dispose(function() {
+					d && d.exit();
+					if (err) {
+						self.setState(TaskRunner.state.erred);
+						callback(err);
+						return;
+					}
 
-				self.setState(TaskRunner.state.succeeded);
-				callback();
+					self.setState(TaskRunner.state.succeeded);
+					callback();
+				});
 			}
 
 			if (err) {
@@ -55,25 +59,34 @@ TaskRunner.prototype = {
 				return;
 			}
 
-			if (task.isAsync()) {
-				task.exec(self.context, function(err) {
-					if (err) {
+			var d = domain.create();
+			d.on('error', function(err) {
+				task.dispose(function() {
+					finish(err);
+				});
+			});
+
+			d.run(function() {
+				if (task.isAsync()) {
+					task.exec(self.context, function(err) {
+						if (err) {
+							finish(err);
+							return;
+						}
+
+						finish();
+					});
+				} else {
+					try {
+						task.exec(self.context);
+					} catch (err) {
 						finish(err);
 						return;
 					}
 
 					finish();
-				});
-			} else {
-				try {
-					task.exec(self.context);
-				} catch (err) {
-					finish(err);
-					return;
 				}
-
-				finish();
-			}
+			});
 		});
 	}
 };

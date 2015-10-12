@@ -21,6 +21,9 @@ Task.prototype = {
 	exec: function() {
 
 	},
+	dispose: function(callback) {
+		callback();
+	},
 	isAsync: function() {
 		return this.exec.length === 2;
 	}
