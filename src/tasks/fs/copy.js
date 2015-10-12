@@ -35,7 +35,10 @@ Task.extend(CopyTask, {
 			function copy(srcMap, next) {
 				var src = srcMap[0],
 					dest = srcMap[1];
-				context.log.debug('Copying ' + chalk.yellow(src) + ' to ' + chalk.yellow(dest));
+				context.log.debug(
+					'Copying ' + chalk.yellow(src) + ' ' + String.fromCharCode(0x2192) + ' ' +
+					chalk.yellow(dest)
+				);
 				context.util.file.copy(src, dest, next);
 			}
 

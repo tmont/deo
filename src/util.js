@@ -1,16 +1,60 @@
 var fs = require('fs-extra'),
 	extend = require('extend'),
+	chalk = require('chalk'),
 	async = require('async'),
 	path = require('path'),
 	glob = require('glob'),
 	unique = require('array-unique');
 
-function Util(cwd) {
+function Util(log, cwd) {
+	this.log = log;
 	this.cwd = cwd || process.cwd();
-	this.file = new FileUtil(cwd);
+	this.file = new FileUtil(log, cwd);
 }
 
-function FileUtil(cwd) {
+Util.prototype = {
+	formatElapsed: function(elapsed) {
+		var pretty;
+
+		var oneSecond = 1000,
+			oneMinute = oneSecond * 60;
+
+		var rest = elapsed;
+		var minutes = Math.floor(rest / oneMinute);
+		rest -= (minutes * oneMinute);
+		var seconds = Math.floor(rest / oneSecond);
+		rest -= (seconds * oneSecond);
+		var ms = rest;
+
+		function pad(value) {
+			return value < 10 ? '0' + value : value;
+		}
+
+		if (minutes > 0) {
+			pretty = minutes + 'm ' + seconds + 's';
+		} else if (seconds > 0) {
+			pretty = seconds + '.' + pad(Math.round(ms / 10)) + 's';
+		} else {
+			pretty = ms + 'ms';
+		}
+
+		return pretty;
+	},
+
+	time: function(thunk, callback) {
+		var start = Date.now();
+		thunk(function(err, result) {
+			var elapsed = Date.now() - start;
+			callback(err, {
+				elapsed: elapsed,
+				value: result
+			});
+		});
+	}
+};
+
+function FileUtil(log, cwd) {
+	this.log = log;
 	this.cwd = cwd;
 }
 
@@ -21,8 +65,24 @@ FileUtil.prototype = {
 	copy: function(sourceFile, dest, callback) {
 		fs.copy(sourceFile, dest, callback);
 	},
-	resolve: function(dest) {
-		return path.resolve(this.cwd, dest);
+	writeFile: function(file, contents, callback) {
+		var self = this;
+		fs.outputFile(file, contents, function(err) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			self.log.debug(
+				'Wrote ' + chalk.bold(Buffer.byteLength(contents, 'utf8')) + ' bytes to ' +
+				chalk.yellow(file)
+			);
+
+			callback();
+		});
+	},
+	resolve: function(file) {
+		return path.resolve(this.cwd, file);
 	},
 	mapSrcToDest: function(src, dest, callback) {
 		dest = this.resolve(dest);

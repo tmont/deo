@@ -10,7 +10,7 @@ function RunContext(log, parent, options) {
 	this.items = parent ? parent.items : {};
 	this.childContexts = [];
 	this.log = log || Logger.noop;
-	this.util = new Util(options.cwd);
+	this.util = new Util(this.log, options.cwd);
 }
 
 RunContext.prototype = {

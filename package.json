@@ -17,8 +17,6 @@
 	"dependencies": {
 		"array-unique": "0.2.1",
 		"async": "1.4.2",
-		"browserify": "11.2.0",
-		"browserify-shim": "3.8.10",
 		"chalk": "1.1.1",
 		"commander": "2.8.1",
 		"extend": "3.0.0",
@@ -29,6 +27,7 @@
 		"looger": "1.0.0"
 	},
 	"devDependencies": {
+		"browserify": "11.2.0",
 		"mocha": "2.3.3",
 		"should": "7.1.0",
 		"sinon": "1.17.1"
