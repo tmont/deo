@@ -21,12 +21,12 @@
 		"commander": "2.8.1",
 		"extend": "3.0.0",
 		"fs-extra": "0.24.0",
-		"gargoyle": "0.3.6",
 		"glob": "5.0.15",
 		"looger": "1.0.0"
 	},
 	"devDependencies": {
 		"browserify": "11.2.0",
+		"gargoyle": "1.0.0",
 		"less": "2.5.3",
 		"mocha": "2.3.3",
 		"should": "7.1.0",

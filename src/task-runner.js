@@ -39,10 +39,16 @@ TaskRunner.prototype = {
 			new TaskRunner(self.context.createChildContext()).run(task, next);
 		}
 
+		var disposed = false;
+
 		async.eachSeries(task.dependentTasks, runDependentTask, function(err) {
 			function finish(err) {
-				task.dispose(function() {
-					d && d.exit();
+				if (task.runForever(self.context)) {
+					callback(err);
+					return;
+				}
+
+				function setStateAndCallBack() {
 					if (err) {
 						self.setState(TaskRunner.state.erred);
 						callback(err);
@@ -51,6 +57,17 @@ TaskRunner.prototype = {
 
 					self.setState(TaskRunner.state.succeeded);
 					callback();
+				}
+
+				if (disposed) {
+					setStateAndCallBack();
+					return;
+				}
+
+				disposed = true;
+				task.dispose(self.context, function() {
+					d && d.exit();
+					setStateAndCallBack();
 				});
 			}
 
@@ -61,7 +78,13 @@ TaskRunner.prototype = {
 
 			var d = domain.create();
 			d.on('error', function(err) {
-				task.dispose(function() {
+				if (disposed) {
+					finish(err);
+					return;
+				}
+
+				disposed = true;
+				task.dispose(self.context, function() {
 					finish(err);
 				});
 			});

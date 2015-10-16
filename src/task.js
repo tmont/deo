@@ -21,11 +21,14 @@ Task.prototype = {
 	exec: function() {
 
 	},
-	dispose: function(callback) {
+	dispose: function(context, callback) {
 		callback();
 	},
 	isAsync: function() {
 		return this.exec.length === 2;
+	},
+	runForever: function() {
+		return false;
 	}
 };
 
