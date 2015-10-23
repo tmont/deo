@@ -66,7 +66,7 @@ Task.extend(WatchTask, {
 		context.set('monitors', []);
 
 		function startWatching(src, next) {
-			var timeout = 500,
+			var interval = 500,
 				timeoutId;
 
 			gargoyle.monitor(src, options, function(err, monitor) {
@@ -78,7 +78,8 @@ Task.extend(WatchTask, {
 
 				log.debug('gargoyle configured, watching ' + chalk.yellow(src));
 
-				var modifiedFiles = [];
+				var modifiedFiles = [],
+					runningHandlers = false;
 
 				function handleFile(fileName) {
 					if (modifiedFiles.indexOf(fileName) !== -1) {
@@ -88,7 +89,14 @@ Task.extend(WatchTask, {
 					modifiedFiles.push(fileName);
 
 					clearTimeout(timeoutId);
-					timeoutId = setTimeout(function() {
+					timeoutId = setTimeout(function processMatchedFiles() {
+						if (runningHandlers) {
+							//wait for handlers to complete, and then start again
+							log.warn('Handlers have not completed, waiting before trying again...');
+							timeoutId = setTimeout(processMatchedFiles, 100);
+							return;
+						}
+
 						var matchedHandlers = {},
 							handlers = self.options.handlers;
 
@@ -103,15 +111,22 @@ Task.extend(WatchTask, {
 								});
 							});
 
-						Object.keys(matchedHandlers).forEach(function(name) {
+						modifiedFiles = [];
+
+						function runHandler(name, next) {
+							log.debug('Running matched handler ' + chalk.underline(name));
 							var handler = handlers[name],
 								files = matchedHandlers[name];
 
-							handler.onMatch.call(self, files);
-						});
+							handler.onMatch.call(self, files, next);
+						}
 
-						modifiedFiles = [];
-					}, timeout);
+						runningHandlers = true;
+						async.each(Object.keys(matchedHandlers), runHandler, function() {
+							log.debug('All handlers completed');
+							runningHandlers = false;
+						});
+					}, interval);
 				}
 
 				monitor.on('modify', function(filename) {
