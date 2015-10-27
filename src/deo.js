@@ -1,127 +1,120 @@
-#!/usr/bin/env node
-
-var start = Date.now(),
+var TaskRunner = require('./task-runner'),
+	RunContext = require('./run-context'),
 	async = require('async'),
-	fs = require('fs'),
-	path = require('path'),
-	program = require('commander'),
-	chalk = require('chalk'),
-	Logger = require('looger').Logger,
-	spawn = require('child_process').spawn;
+	extend = require('extend'),
+	chalk = require('chalk');
 
-program
-	.version(require('../package.json').version)
-	.usage('[options] task1 [task2]...')
-	.option('--debug', 'Enable debug logging')
-	.option('--forever', 'Do not exit the process unless an error occurs');
-
-program.on('--help', function() {
-	console.log('  Available tasks:');
-	console.log();
-
-	var taskDir = path.join(__dirname, 'tasks');
-	var files = fs.readdirSync(taskDir);
-	var longestName = 0;
-	files.forEach(function(filename) {
-		longestName = Math.max(longestName, filename.length - 3);
-	});
-
-	files.forEach(function(filename) {
-		var taskName = filename.replace(/\.js$/, '');
-		var fullPath = path.join(taskDir, filename);
-		console.log('    ' +
-			chalk.bold.underline(taskName) +
-			new Array(longestName - taskName.length + 2).join(' ') +
-			require(fullPath).description
-		);
-	});
-
-	process.exit();
-});
-
-program.parse(process.argv);
-
-var tasks = program.args;
-var log = Logger.create({
-	level: program.debug ? 'debug' : 'info',
-	timestamps: false,
-	colorize: true,
-	prefix: chalk.blue('[deo]') + ' '
-});
-
-if (!tasks || !tasks.length) {
-	log.error('At least one task must be specified');
-	process.exit(1);
+function Deo(log, config) {
+	this.log = log;
+	this.config = config;
+	this.runners = [];
 }
 
-var src = path.join(__dirname, 'src'),
-	testDir = path.join(__dirname, 'tests'),
-	buildDirName = 'build',
-	buildStaticDirName = 'static',
-	staticDir = path.join(src, 'static');
-var context = {
-	program: program,
-	staticBasePath: program.staticBasePath || '/' + buildDirName + '/' + buildStaticDirName,
-	dirs: {
-		src: src,
-		js: path.join(staticDir, 'js'),
-		less: path.join(staticDir, 'css'),
-		fonts: path.join(staticDir, 'fonts'),
-		images: path.join(staticDir, 'images'),
-		build: path.join(__dirname, buildDirName),
-		scripts: path.join(__dirname, 'scripts'),
-		nodeModules: path.join(__dirname, 'node_modules'),
-		tests: testDir,
-		unitTests: path.join(testDir, 'unit'),
-		dbTests: path.join(testDir, 'db')
+Deo.prototype = {
+	set: function(key, value) {
+		this.config.setSetting(key, value);
+		return this;
 	},
-	spawn: function(command, args, done) {
-		spawn(command, args, {stdio: [0, 1, 2]})
-			.on('close', function(code) {
-				done(code && code !== 0 ? code : null);
+	get: function(key) {
+		return this.config.getSetting(key);
+	},
+	properties: function(properties) {
+		this.config.addProperties(properties);
+		return this;
+	},
+	property: function(key) {
+		return this.config.getProperty(key);
+	},
+	register: function(moduleName, alias) {
+		var task;
+		switch (typeof(moduleName)) {
+			case 'string':
+				this.log.trace('require()\'ing module ' + chalk.bold(moduleName));
+				try {
+					task = require(moduleName);
+				} catch (e) {
+					throw new Error('Unable to load NPM module "' + moduleName + '"');
+				}
+				break;
+			case 'function':
+				task = moduleName;
+				break;
+			default:
+				throw new Error('first argument to register() must be a string or a function');
+		}
+
+		this.config.registerTask(task, alias);
+		return this;
+	},
+	target: function(name, dependencies, definition) {
+		if (typeof(dependencies) === 'function') {
+			definition = dependencies;
+			dependencies = [];
+		}
+
+		if (typeof(name) !== 'string') {
+			throw new Error('name must be a string');
+		}
+		if (!Array.isArray(dependencies)) {
+			throw new Error('dependencies must be an array');
+		}
+
+		this.config.registerCustomTarget(name, dependencies, definition);
+		return this;
+	},
+	targets: function(targets) {
+		if (typeof(targets) !== 'object' || !targets) {
+			throw new Error('targets must be an object');
+		}
+
+		this.config.addTargets(targets);
+		return this;
+	},
+	runTask: function(name, callback) {
+		var options = {
+			cwd: this.config.getSetting('cwd')
+		};
+		this.log.trace('Creating runner for task ' + chalk.bold(name));
+		var context = new RunContext(this.log, null, options);
+		var runner = new TaskRunner(context);
+		try {
+			var task = this.config.getTarget(name);
+		} catch (e) {
+			callback(e);
+			return;
+		}
+
+		task.options = this.config.interpolateObject(extend({}, task.options));
+
+		this.runners.push(runner);
+		runner.run(task, callback);
+	},
+	isRunning: function() {
+		return this.runners.some(function(runner) {
+			return runner.state === TaskRunner.state.running;
+		});
+	},
+	kill: function(callback) {
+		this.log.trace('Disposing of task runners');
+		var log = this.log;
+		var errors = [];
+		function stopRunner(runner, next) {
+			log.debug('Disposing of task runner for ' + chalk.bold(runner.getName()));
+			runner.dispose(function(err) {
+				if (err) {
+					log.error(err);
+					errors.push(err);
+				}
+
+				//always dispose of all runners, regardless of if previous ones erred
+				next();
 			});
+		}
+
+		async.each(this.runners, stopRunner, function() {
+			callback(errors.length ? errors : null);
+		});
 	}
 };
 
-context.dirs.buildStatic = path.join(context.dirs.build, buildStaticDirName);
-context.dirs.buildJs = path.join(context.dirs.buildStatic, 'js');
-context.dirs.buildCss = path.join(context.dirs.buildStatic, 'css');
-context.dirs.buildFonts = path.join(context.dirs.buildStatic, 'fonts');
-context.dirs.buildImages = path.join(context.dirs.buildStatic, 'images');
-
-function runTask(taskName, next) {
-	log.info(chalk.underline.bold('Starting task ' + taskName));
-	var task = require('./tasks/' + taskName),
-		taskLog = Logger.create({
-			level: program.debug ? 'debug' : 'info',
-			timestamps: false,
-			colorize: true,
-			prefix: chalk.magenta('[' + taskName + ']') + ' '
-		});
-
-	if (task.length === 3) {
-		log.debug('Arity = 3, Running task asynchronously');
-		task(taskLog, context, next);
-	} else {
-		log.debug('Running task synchronously');
-		task(taskLog, context);
-		next();
-	}
-}
-
-context.runTask = runTask;
-
-async.eachSeries(tasks, runTask, function(err) {
-	log.info('All tasks completed in ' + Math.round((Date.now() - start) / 100) / 10 + 's');
-
-	if (err) {
-		log.error(err);
-		process.exit(1);
-	}
-
-	if (!program.forever) {
-		process.exit();
-	} else {
-		log.debug('Running forever, CTRL+C to quit');
-	}
-});
+module.exports = Deo;

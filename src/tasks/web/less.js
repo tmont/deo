@@ -5,19 +5,24 @@ var Task = require('../../task'),
 	async = require('async'),
 	fs = require('fs-extra');
 
-function LessTask(src, dest, options) {
-	if (!src) {
+function LessTask(dependencies, options) {
+	options = options || {};
+	if (!options.src) {
 		throw new Error('src is required');
 	}
-	if (!dest) {
+	if (!options.dest) {
 		throw new Error('dest is required');
 	}
-	options = options || {};
 
-	var cwd = options.cwd || null;
+	var cwd = options.cwd || null,
+		src = options.src,
+		dest = options.dest;
+
 	delete options.cwd;
+	delete options.src;
+	delete options.dest;
 
-	Task.call(this, 'less', [], {
+	Task.call(this, 'less', dependencies, {
 		src: src,
 		dest: dest,
 		cwd: cwd,

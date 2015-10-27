@@ -7,6 +7,7 @@ function RunContext(log, parent, options) {
 	this.started = null;
 	this.ended = null;
 	this.parent = parent;
+	this.task = null;
 	this.items = parent ? parent.items : {};
 	this.childContexts = [];
 	this.log = log || Logger.noop;
@@ -34,6 +35,9 @@ RunContext.prototype = {
 		}
 
 		return this.ended.getTime() - this.started.getTime();
+	},
+	get elapsedFormatted() {
+		return this.util.formatElapsed(this.elapsed);
 	}
 };
 

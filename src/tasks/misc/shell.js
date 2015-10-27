@@ -31,7 +31,7 @@ Task.extend(ShellTask, {
 	},
 
 	dispose: function(context, callback) {
-		var proc = this.context.get('proc');
+		var proc = context.get('proc');
 		if (!proc) {
 			callback();
 			return;
@@ -52,6 +52,8 @@ Task.extend(ShellTask, {
 		if (this.options.env) {
 			options.env = this.options.env;
 		}
+
+		context.log.debug('Command: ' + chalk.gray(command + ' ' + args.join(' ')));
 
 		var forever = !!this.options.forever;
 
@@ -103,7 +105,7 @@ Task.extend(ShellTask, {
 			});
 		}
 
-		context.items.set('proc', proc);
+		context.set('proc', proc);
 		if (forever) {
 			callback();
 		}

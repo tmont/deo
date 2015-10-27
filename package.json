@@ -9,10 +9,10 @@
 		"url": "https://github.com/tmont/deo.git"
 	},
 	"bin": {
-		"deo": "src/deo.js"
+		"deo": "src/bin/cli.js"
 	},
 	"scripts": {
-		"test": "node_modules/.bin/mocha -R spec --recursive tests"
+		"test": "src/bin/cli.js test"
 	},
 	"dependencies": {
 		"array-unique": "0.2.1",

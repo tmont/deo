@@ -1,5 +1,6 @@
 var async = require('async'),
 	domain = require('domain'),
+	chalk = require('chalk'),
 	RunContext = require('./run-context');
 
 function TaskRunner(context) {
@@ -13,17 +14,33 @@ function TaskRunner(context) {
 }
 
 TaskRunner.prototype = {
+	getName: function() {
+		return this.context.task ? this.context.task.name : 'n/a';
+	},
+
 	setState: function(state) {
 		this.state = state;
 		switch (state) {
 			case TaskRunner.state.running:
+				this.log.info('Starting ' + chalk.bold.underline(this.getName()) + ' target');
 				this.context.started = new Date();
 				break;
 			case TaskRunner.state.erred:
 			case TaskRunner.state.succeeded:
 				this.context.ended = new Date();
+				this.log.info(' ' + chalk.bold(this.getName()) + ' finished in ' + this.context.elapsedFormatted);
 				break;
 		}
+	},
+
+	dispose: function(callback) {
+		var task = this.context.task;
+		if (!task) {
+			callback();
+			return;
+		}
+
+		task.dispose(this.context, callback);
 	},
 
 	run: function(task, callback) {
@@ -33,6 +50,7 @@ TaskRunner.prototype = {
 		}
 
 		var self = this;
+		this.context.task = task;
 		this.setState(TaskRunner.state.running);
 
 		function runDependentTask(task, next) {
