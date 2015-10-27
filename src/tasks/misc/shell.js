@@ -15,7 +15,7 @@ function ShellTask(options) {
 		throw new Error('Must specify a command');
 	}
 
-	Task.call(this, 'shell', [], {
+	Task.call(this, options.alias || 'shell', [], {
 		command: options.command || null,
 		args: options.args || null,
 		cwd: options.cwd || null,

@@ -97,14 +97,17 @@ Config.prototype = {
 			log.trace('parsing targets for ' + chalk.bold(taskName));
 			var targetDefinitions = targets[taskName];
 			Object.keys(targetDefinitions).forEach(function(targetName) {
-				var fullTargetName = taskName + ':' + targetName;
-				var targetOptions = targetDefinitions[targetName];
-				if (targetMap[fullTargetName]) {
-					log.warn('overwriting existing target ' + chalk.bold(fullTargetName));
+				var fullTargetName = taskName + ':' + targetName,
+					targetOptions = targetDefinitions[targetName],
+					realTargetName = targetOptions.alias || fullTargetName;
+
+				if (targetMap[realTargetName]) {
+					log.warn('overwriting existing target ' + chalk.bold(realTargetName));
 				}
 
+				targetOptions.alias = realTargetName;
 				var task = new taskCtor(targetOptions);
-				self.registerTaskTarget(fullTargetName, task);
+				self.registerTaskTarget(realTargetName, task);
 			});
 		});
 	},
