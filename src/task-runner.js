@@ -1,5 +1,6 @@
 var async = require('async'),
 	domain = require('domain'),
+	util = require('util'),
 	chalk = require('chalk'),
 	RunContext = require('./run-context');
 
@@ -28,7 +29,21 @@ TaskRunner.prototype = {
 			case TaskRunner.state.erred:
 			case TaskRunner.state.succeeded:
 				this.context.ended = new Date();
-				this.log.info(' ' + chalk.bold(this.getName()) + ' finished in ' + this.context.elapsedFormatted);
+				var icon = String.fromCharCode(0x2713),
+					color = 'green',
+					message = 'succeeded';
+
+				if (state !== TaskRunner.state.succeeded) {
+					icon = String.fromCharCode(0x2717);
+					color = 'red';
+					message = 'failed';
+				}
+
+				this.log.info(
+					chalk[color](icon) + ' target ' + chalk.underline(this.getName()) +
+					' ' + chalk[color](message) + ' in ' + this.context.elapsedFormatted
+				);
+
 				break;
 		}
 	},

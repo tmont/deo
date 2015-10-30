@@ -30,7 +30,7 @@ Task.extend(BrowserifyTask, {
 		var self = this,
 			options = { cwd: this.options.cwd },
 			src = this.options.src,
-			dest = context.util.file.resolve(this.options.dest);
+			dest = context.file.resolve(this.options.dest);
 
 		try {
 			var browserify = require('browserify');
@@ -64,7 +64,7 @@ Task.extend(BrowserifyTask, {
 		}
 
 		function doBrowserification(next) {
-			context.util.file.expand(src, options, function(err, entries) {
+			context.file.expand(src, options, function(err, entries) {
 				if (err) {
 					next(err);
 					return;
@@ -79,7 +79,7 @@ Task.extend(BrowserifyTask, {
 					entries: entries
 				});
 
-				context.util.log.info(
+				context.log.info(
 					'Browserifying ' + chalk.bold(entries.length) + ' file' +
 					(entries.length === 1 ? '' : 's') + ' into ' + chalk.yellow(dest)
 				);
@@ -90,17 +90,17 @@ Task.extend(BrowserifyTask, {
 					b.bundle(done);
 				}
 
-				context.util.time(bundle, function(err, result) {
+				context.time.benchmark(bundle, function(err, result) {
 					if (err) {
 						next(err);
 						return;
 					}
 
 					var bundle = result.value,
-						elapsed = context.util.formatElapsed(result.elapsed);
+						elapsed = context.time.formatElapsed(result.elapsed);
 
-					context.util.log.info('browserify bundle completed in ' + chalk.bold(elapsed));
-					context.util.file.writeFile(dest, bundle, next);
+					context.log.info('browserify bundle completed in ' + chalk.bold(elapsed));
+					context.file.writeFile(dest, bundle, next);
 				});
 			});
 		}

@@ -26,7 +26,7 @@ Task.extend(CopyTask, {
 			src = this.options.src,
 			dest = this.options.dest;
 
-		context.util.file.expandAndMap(src, options, dest, function(err, srcMaps) {
+		context.file.expandAndMap(src, options, dest, function(err, srcMaps) {
 			if (err) {
 				callback(err);
 				return;
@@ -39,7 +39,7 @@ Task.extend(CopyTask, {
 					'Copying ' + chalk.yellow(src) + ' ' + String.fromCharCode(0x2192) + ' ' +
 					chalk.yellow(dest)
 				);
-				context.util.file.copy(src, dest, next);
+				context.file.copy(src, dest, next);
 			}
 
 			async.each(srcMaps, copy, function(err) {

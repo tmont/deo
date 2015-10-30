@@ -35,7 +35,7 @@ Task.extend(LessTask, {
 		var self = this,
 			options = { cwd: this.options.cwd },
 			src = this.options.src,
-			dest = context.util.file.resolve(this.options.dest);
+			dest = context.file.resolve(this.options.dest);
 
 		try {
 			var less = require('less');
@@ -69,7 +69,7 @@ Task.extend(LessTask, {
 		}
 
 		function doLessification(next) {
-			context.util.file.expand(src, options, function(err, files) {
+			context.file.expand(src, options, function(err, files) {
 				if (err) {
 					next(err);
 					return;
@@ -105,7 +105,7 @@ Task.extend(LessTask, {
 					});
 				}
 
-				context.util.time(compile, function(err, result) {
+				context.time(compile, function(err, result) {
 					if (err) {
 						next(err);
 						return;
@@ -115,7 +115,7 @@ Task.extend(LessTask, {
 						elapsed = context.util.formatElapsed(result.elapsed);
 
 					context.log.info('less compilation completed in ' + chalk.bold(elapsed));
-					context.util.file.writeFile(dest, css, next);
+					context.file.writeFile(dest, css, next);
 				});
 			});
 		}

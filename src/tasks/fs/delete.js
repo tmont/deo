@@ -16,7 +16,7 @@ Task.extend(DeleteTask, {
 		var options = { cwd: this.options.cwd },
 			src = this.options.src;
 
-		context.util.file.expand(src, options, function(err, files) {
+		context.file.expand(src, options, function(err, files) {
 			if (err) {
 				callback(err);
 				return;
@@ -24,7 +24,7 @@ Task.extend(DeleteTask, {
 
 			function unlink(file, next) {
 				context.log.debug('Deleting ' + chalk.yellow(file));
-				context.util.file.del(file, next);
+				context.file.del(file, next);
 			}
 
 			async.each(files, unlink, function(err) {

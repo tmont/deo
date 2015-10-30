@@ -1,57 +1,10 @@
-var fs = require('fs-extra'),
+var chalk = require('chalk'),
 	extend = require('extend'),
-	chalk = require('chalk'),
-	async = require('async'),
+	fs = require('fs-extra'),
 	path = require('path'),
 	glob = require('glob'),
+	async = require('async'),
 	unique = require('array-unique');
-
-function Util(log, cwd) {
-	this.log = log;
-	this.cwd = cwd || process.cwd();
-	this.file = new FileUtil(log, cwd);
-}
-
-Util.prototype = {
-	formatElapsed: function(elapsed) {
-		var pretty;
-
-		var oneSecond = 1000,
-			oneMinute = oneSecond * 60;
-
-		var rest = elapsed;
-		var minutes = Math.floor(rest / oneMinute);
-		rest -= (minutes * oneMinute);
-		var seconds = Math.floor(rest / oneSecond);
-		rest -= (seconds * oneSecond);
-		var ms = rest;
-
-		function pad(value) {
-			return value < 10 ? '0' + value : value;
-		}
-
-		if (minutes > 0) {
-			pretty = minutes + 'm ' + seconds + 's';
-		} else if (seconds > 0) {
-			pretty = seconds + '.' + pad(Math.round(ms / 10)) + 's';
-		} else {
-			pretty = ms + 'ms';
-		}
-
-		return pretty;
-	},
-
-	time: function(thunk, callback) {
-		var start = Date.now();
-		thunk(function(err, result) {
-			var elapsed = Date.now() - start;
-			callback(err, {
-				elapsed: elapsed,
-				value: result
-			});
-		});
-	}
-};
 
 function FileUtil(log, cwd) {
 	this.log = log;
@@ -126,12 +79,12 @@ FileUtil.prototype = {
 						//dest does not exist or is not a directory,
 						//i.e. map a single file to a single file
 						next(null, src.map(function(src) {
-							return [ src, dest ];
+							return [src, dest];
 						}));
 					} else {
 						//dest exists and is a directory, src is a single file
 						next(null, src.map(function(src) {
-							return [ src, path.join(dest, path.basename(src)) ];
+							return [src, path.join(dest, path.basename(src))];
 						}));
 					}
 				}
@@ -147,7 +100,7 @@ FileUtil.prototype = {
 
 				//src is a dir, dest either doesn't exist, or is a directory
 				next(null, src.map(function(src) {
-					return [ src, dest ];
+					return [src, dest];
 				}));
 				return;
 			}
@@ -155,7 +108,7 @@ FileUtil.prototype = {
 			next(new Error('src is not a file or a directory. wat.'));
 		}
 
-		async.waterfall([ statDest, statSrc, map ], callback);
+		async.waterfall([statDest, statSrc, map], callback);
 	},
 	expand: function(patterns, options, callback) {
 		var globOptions = extend({
@@ -177,7 +130,7 @@ FileUtil.prototype = {
 			glob(pattern, globOptions, next);
 		}
 
-		patterns = Array.isArray(patterns) ? patterns : [ patterns ];
+		patterns = Array.isArray(patterns) ? patterns : [patterns];
 
 		async.map(patterns, globber, function(err, arrayOfArrays) {
 			if (err) {
@@ -205,4 +158,4 @@ FileUtil.prototype = {
 	}
 };
 
-module.exports = Util;
+module.exports = FileUtil;

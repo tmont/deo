@@ -77,8 +77,14 @@ async.series([ verifyConfigFile, runTasks ], function(err) {
 		return;
 	}
 
+	function finish(err) {
+		log.info('All tasks finished in ' + deo.time.formatElapsed(Date.now() - start));
+		process.exit(err ? 1 : 0);
+	}
+
 	if (!d.isRunning()) {
-		process.exit(0);
+		finish();
+		return;
 	}
 
 	var stopping = false;
@@ -88,6 +94,7 @@ async.series([ verifyConfigFile, runTasks ], function(err) {
 			return;
 		}
 
+		stopping = true;
 		log.debug('Cleaning up running tasks...');
 		d.kill(function(err) {
 			log.debug('Clean up complete');
@@ -95,7 +102,7 @@ async.series([ verifyConfigFile, runTasks ], function(err) {
 				log.warn('Error occurred during cleanup');
 				log.error(err);
 			}
-			process.exit(err || runError ? 1 : 0);
+			finish(err || runError);
 		});
 	}
 

@@ -1,4 +1,5 @@
-var Util = require('./util'),
+var FileUtil = require('./util/file'),
+	time = require('./util/time'),
 	Logger = require('looger').Logger;
 
 function RunContext(log, parent, options) {
@@ -11,7 +12,8 @@ function RunContext(log, parent, options) {
 	this.items = parent ? parent.items : {};
 	this.childContexts = [];
 	this.log = log || Logger.noop;
-	this.util = new Util(this.log, options.cwd);
+	this.time = time;
+	this.file = new FileUtil(this.log, options.cwd);
 }
 
 RunContext.prototype = {
@@ -37,7 +39,7 @@ RunContext.prototype = {
 		return this.ended.getTime() - this.started.getTime();
 	},
 	get elapsedFormatted() {
-		return this.util.formatElapsed(this.elapsed);
+		return time.formatElapsed(this.elapsed);
 	}
 };
 
