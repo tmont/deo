@@ -41,12 +41,12 @@ Config.prototype = {
 		return str.replace(regex, function(match, propertyName) {
 			var value = self.getProperty(propertyName);
 			if (!value) {
-				log.warn(chalk.bold('interpolate') + ': ' + 'no property found for ' + chalk.yellow(propertyName));
+				log.warn('no property found for ' + chalk.yellow(propertyName));
 				return '';
 			}
 
 			log.trace(
-				'replaced ' + chalk.yellow(match) + ' with ' + chalk.yellow(propertyName) +
+				'replaced ' + chalk.yellow(match) + ' with ' + chalk.underline(value) +
 				' in ' + chalk.bold(str)
 			);
 
@@ -142,29 +142,45 @@ Config.prototype = {
 		return this.targets[name];
 	},
 
-	addProperties: function(properties) {
-		var self = this;
-		var keys = Object.keys(properties);
-		var interpolatedProperties = keys.reduce(function(obj, key) {
-			obj[key] = self.interpolateObject(properties[key]);
-			return obj;
-		}, {});
+	setProperty: function(key, value) {
+		if (!key) {
+			throw new Error('key is required');
+		}
 
-		extend(true, this.properties, interpolatedProperties);
-		this.log.trace(
-			'merged in ' + chalk.yellow(keys.length) + ' '  +
-			(keys.length === 1 ? 'property' : 'properties')
-		);
+		if (typeof(key) === 'object') {
+			var self = this;
+
+			function setObjectProperty(obj, prop) {
+				Object.keys(obj).forEach(function(key) {
+					var newProp = (prop ? prop + '.' : '') + key;
+					var value = obj[key];
+					if (!value || typeof(value) !== 'object') {
+						self.properties[newProp] = value;
+						self.log.trace('set property for ' + chalk.yellow(newProp));
+						return;
+					}
+					setObjectProperty(value, newProp);
+				});
+			}
+
+			setObjectProperty(key);
+			return;
+		}
+
+		this.properties[key] = this.interpolate(value);
+		this.log.trace('set property for ' + chalk.yellow(key));
 	},
 
 	getProperty: function(key) {
 		this.log.trace('Getting property ' + chalk.yellow(key));
-		var value = this.properties;
-		var keys = key.split('.'),
-			currentKey = keys.shift();
-		while (currentKey && value) {
-			value = value[currentKey];
-			currentKey = keys.shift();
+		var value = this.properties[key];
+		if (!(key in this.properties)) {
+			this.log.warn('Property ' + chalk.yellow(key) + ' does not exist');
+		}
+
+		if (typeof(value) === 'function') {
+			this.log.trace('Evaluating property ' + chalk.yellow(key));
+			value = value();
 		}
 
 		return value;

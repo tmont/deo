@@ -88,9 +88,9 @@ async.series([ verifyConfigFile, runTasks ], function(err) {
 			return;
 		}
 
-		log.info('Cleaning up running tasks...');
+		log.debug('Cleaning up running tasks...');
 		d.kill(function(err) {
-			log.info('Clean up complete');
+			log.debug('Clean up complete');
 			if (err) {
 				log.warn('Error occurred during cleanup');
 				log.error(err);

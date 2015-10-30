@@ -18,11 +18,11 @@ Deo.prototype = {
 	get: function(key) {
 		return this.config.getSetting(key);
 	},
-	properties: function(properties) {
-		this.config.addProperties(properties);
+	setProperty: function(key, value) {
+		this.config.setProperty(key, value);
 		return this;
 	},
-	property: function(key) {
+	getProperty: function(key) {
 		return this.config.getProperty(key);
 	},
 	register: function(moduleName, alias) {

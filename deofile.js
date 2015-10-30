@@ -1,29 +1,13 @@
 module.exports = function(deo) {
 	deo
-		.set('cwd', __dirname)
-		.properties({
+		.setProperty({
 			dirs: {
 				build: 'build',
-				buildStatic: '${dirs.build}/static',
 				test: 'tests'
 			}
 		})
 		.targets({
-			//less: {
-			//	target1: {
-			//		dependsOn: [ 'init' ],
-			//		src: [
-			//			'src/static/css/styles.less',
-			//			'src/static/css/others.less'
-			//		],
-			//		dest: 'build/static/css'
-			//	}
-			//},
 			shell: {
-				//nodeApp: {
-				//	command: 'node',
-				//	args: ['--harmony', 'src/www/app.js']
-				//},
 				test: {
 					alias: 'test',
 					command: 'node_modules/.bin/mocha',
