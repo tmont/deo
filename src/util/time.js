@@ -30,9 +30,8 @@ module.exports = {
 	benchmark: function(thunk, callback) {
 		var start = Date.now();
 		thunk(function(err, result) {
-			var elapsed = Date.now() - start;
 			callback(err, {
-				elapsed: elapsed,
+				elapsed: Date.now() - start,
 				value: result
 			});
 		});

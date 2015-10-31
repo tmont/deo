@@ -77,7 +77,7 @@ describe('Watch task', function() {
 			}
 		};
 
-		task = new WatchTask(rootDir, handlers);
+		task = new WatchTask({ src: rootDir, handlers: handlers });
 		context = new RunContext();
 
 		task.exec(context, function(err) {
@@ -109,7 +109,7 @@ describe('Watch task', function() {
 			}
 		};
 
-		task = new WatchTask(rootDir, handlers);
+		task = new WatchTask({ src: rootDir, handlers: handlers });
 		context = new RunContext();
 
 		task.exec(context, function(err) {
@@ -141,7 +141,7 @@ describe('Watch task', function() {
 			}
 		};
 
-		task = new WatchTask(rootDir, handlers);
+		task = new WatchTask({ src: rootDir, handlers: handlers });
 		context = new RunContext();
 
 		task.exec(context, function(err) {
@@ -173,7 +173,7 @@ describe('Watch task', function() {
 			}
 		};
 
-		task = new WatchTask(singleFile, handlers);
+		task = new WatchTask({ src: singleFile, handlers: handlers });
 		context = new RunContext();
 
 		task.exec(context, function(err) {
@@ -198,7 +198,7 @@ describe('Watch task', function() {
 			}
 		};
 
-		task = new WatchTask(rootDir, handlers);
+		task = new WatchTask({ src: rootDir, handlers: handlers });
 		context = new RunContext();
 
 		task.exec(context, function(err) {

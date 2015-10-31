@@ -13,13 +13,16 @@ program
 	.version(require('../../package.json').version)
 	.usage('[options] task1 [task2]...')
 	.option('--log <level>', 'Set log level')
+	.option('--debug', 'Shortcut for --log debug', false)
+	.option('--trace', 'Shortcut for --log trace', false)
 	.option('-C, --config <file>', 'Path to deo configuration file, defaults to ./deofile.js');
 
 program.parse(process.argv);
 
+var logLevel = program.log || (program.trace && 'trace') || (program.debug && 'debug') || 'info';
 var tasks = program.args;
 var log = Logger.create({
-	level: program.log || 'info',
+	level: logLevel,
 	timestamps: false,
 	colorize: true,
 	prefix: chalk.blue('[deo]') + ' '
@@ -70,6 +73,36 @@ function runTasks(next) {
 	async.eachSeries(tasks, runTask, next);
 }
 
+var stopping = false;
+
+function finish(err) {
+	log.info('Completed in ' + deo.time.formatElapsed(Date.now() - start));
+	process.exit(err ? 1 : 0);
+}
+
+function cleanUp(runError) {
+	if (stopping) {
+		return;
+	}
+
+	stopping = true;
+	log.debug('Cleaning up running tasks...');
+	d.kill(function(err) {
+		log.debug('Clean up complete');
+		if (err) {
+			log.warn('Error occurred during cleanup');
+			log.error(err);
+		}
+		finish(err || runError);
+	});
+}
+
+process.on('SIGINT', function() {
+	console.log();
+	log.trace('Received SIGINT signal');
+	cleanUp();
+});
+
 async.series([ verifyConfigFile, runTasks ], function(err) {
 	if (err) {
 		log.error(err);
@@ -77,36 +110,10 @@ async.series([ verifyConfigFile, runTasks ], function(err) {
 		return;
 	}
 
-	function finish(err) {
-		log.info('All tasks finished in ' + deo.time.formatElapsed(Date.now() - start));
-		process.exit(err ? 1 : 0);
-	}
-
 	if (!d.isRunning()) {
 		finish();
 		return;
 	}
 
-	var stopping = false;
-
-	function cleanUp(runError) {
-		if (stopping) {
-			return;
-		}
-
-		stopping = true;
-		log.debug('Cleaning up running tasks...');
-		d.kill(function(err) {
-			log.debug('Clean up complete');
-			if (err) {
-				log.warn('Error occurred during cleanup');
-				log.error(err);
-			}
-			finish(err || runError);
-		});
-	}
-
 	log.info('Tasks are still running, press CTRL+C to stop');
-
-	process.on('SIGINT', cleanUp);
 });

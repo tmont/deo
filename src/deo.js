@@ -76,6 +76,7 @@ Deo.prototype = {
 		};
 		this.log.trace('Creating runner for task ' + chalk.bold(name));
 		var context = new RunContext(this.log, null, options);
+		context.deo = this;
 		var runner = new TaskRunner(context);
 		try {
 			var task = this.config.getTarget(name);

@@ -14,9 +14,19 @@ function RunContext(log, parent, options) {
 	this.log = log || Logger.noop;
 	this.time = time;
 	this.file = new FileUtil(this.log, options.cwd);
+	this.deo = null;
 }
 
 RunContext.prototype = {
+	runTask: function(name, callback) {
+		if (!this.deo) {
+			callback(new Error('RunContext was misconfigured, no deo object!'));
+			return;
+		}
+
+		this.deo.runTask(name, callback);
+	},
+
 	createChildContext: function() {
 		var childContext = new RunContext(this.log, this);
 		this.childContexts.push(childContext);

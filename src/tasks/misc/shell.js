@@ -32,11 +32,16 @@ Task.extend(ShellTask, {
 
 	dispose: function(context, callback) {
 		var proc = context.get('proc');
-		if (!proc) {
+
+		if (!proc || proc.exitCode !== null) {
+			if (proc.exitCode !== null) {
+				context.log.trace('Not killing process, exitCode is defined');
+			}
 			callback();
 			return;
 		}
 
+		context.log.info('Killing running process using signal ' + chalk.magenta(this.options.killSignal));
 		proc.kill(this.options.killSignal);
 		callback();
 	},

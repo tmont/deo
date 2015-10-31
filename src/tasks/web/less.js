@@ -5,7 +5,7 @@ var Task = require('../../task'),
 	async = require('async'),
 	fs = require('fs-extra');
 
-function LessTask(dependencies, options) {
+function LessTask(options) {
 	options = options || {};
 	if (!options.src) {
 		throw new Error('src is required');
@@ -22,7 +22,7 @@ function LessTask(dependencies, options) {
 	delete options.src;
 	delete options.dest;
 
-	Task.call(this, 'less', dependencies, {
+	Task.call(this, 'less', [], {
 		src: src,
 		dest: dest,
 		cwd: cwd,
@@ -105,14 +105,14 @@ Task.extend(LessTask, {
 					});
 				}
 
-				context.time(compile, function(err, result) {
+				context.time.benchmark(compile, function(err, result) {
 					if (err) {
 						next(err);
 						return;
 					}
 
 					var css = result.value.css,
-						elapsed = context.util.formatElapsed(result.elapsed);
+						elapsed = context.time.formatElapsed(result.elapsed);
 
 					context.log.info('less compilation completed in ' + chalk.bold(elapsed));
 					context.file.writeFile(dest, css, next);

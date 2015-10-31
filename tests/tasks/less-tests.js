@@ -27,7 +27,7 @@ describe('Less tasks', function() {
 
 	it('should compile single file with @imports', function(done) {
 		var dest = path.join(tmpDir, 'lessified.less');
-		var task = new LessTask(path.join(rootDir, 'a.less'), dest),
+		var task = new LessTask({ src: path.join(rootDir, 'a.less'), dest: dest }),
 			context = new RunContext();
 
 		task.exec(context, function(err) {
@@ -38,7 +38,7 @@ describe('Less tasks', function() {
 
 	it('should compile multiple files and concatenate them', function(done) {
 		var dest = path.join(tmpDir, 'lessified.less');
-		var task = new LessTask([ 'a.less', 'c.less' ], dest, { cwd: rootDir }),
+		var task = new LessTask({ src: [ 'a.less', 'c.less' ], dest: dest, cwd: rootDir }),
 			context = new RunContext();
 
 		task.exec(context, function(err) {
@@ -50,11 +50,13 @@ describe('Less tasks', function() {
 	it('should compile single file with options', function(done) {
 		var dest = path.join(tmpDir, 'lessified.less');
 		var options = {
+			src: path.join(rootDir, 'a.less'),
+			dest: dest,
 			modifyVars: {
 				'font-size': '14px'
 			}
 		};
-		var task = new LessTask(path.join(rootDir, 'a.less'), dest, options),
+		var task = new LessTask(options),
 			context = new RunContext();
 
 		task.exec(context, function(err) {

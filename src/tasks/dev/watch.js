@@ -3,17 +3,33 @@ var Task = require('../../task'),
 	path = require('path'),
 	async = require('async');
 
-function WatchTask(src, handlers, options) {
+function WatchTask(options) {
+	options = options || {};
+	var src = options.src,
+		handlers = options.handlers;
+
 	if (!src) {
 		throw new Error('src is required');
 	}
 	if (!handlers) {
 		throw new Error('handlers is required');
 	}
-	options = options || {};
 
 	var cwd = options.cwd || null;
 	delete options.cwd;
+
+	Object.keys(handlers).forEach(function(name) {
+		var handler = handlers[name];
+		if (!handler) {
+			throw new Error('Invalid handler "' + name + '"');
+		}
+		if (!(handler.regex instanceof RegExp)) {
+			throw new Error('handler.regex must be a regular expression');
+		}
+		if (!Array.isArray(handler.onMatch) && typeof(handler.onMatch) !== 'function') {
+			throw new Error('handler.onMatch must be an array or a function');
+		}
+	});
 
 	Task.call(this, 'watch', [], {
 		src: src,
@@ -116,9 +132,17 @@ Task.extend(WatchTask, {
 						function runHandler(name, next) {
 							log.debug('Running matched handler ' + chalk.underline(name));
 							var handler = handlers[name],
-								files = matchedHandlers[name];
+								files = matchedHandlers[name],
+								onMatch = handler.onMatch;
 
-							handler.onMatch.call(self, files, next);
+							if (Array.isArray(onMatch)) {
+								//array of tasks
+								async.eachSeries(onMatch, function(taskName, next) {
+									context.runTask(taskName, next);
+								}, next);
+							} else {
+								handler.onMatch.call(self, files, next);
+							}
 						}
 
 						runningHandlers = true;
