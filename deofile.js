@@ -18,11 +18,7 @@ module.exports = function(deo) {
 				tests: {
 					src: [ 'tests' ],
 					filter: function(filename) {
-						if (/(tmp|test-files)/.test(filename)) {
-							return false;
-						}
-
-						return true;
+						return !/(tmp|test-files)/.test(filename);
 					},
 					handlers: {
 						less: {
