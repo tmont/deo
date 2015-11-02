@@ -17,9 +17,16 @@ module.exports = function(deo) {
 			watch: {
 				tests: {
 					src: [ 'tests' ],
+					filter: function(filename) {
+						if (/(tmp|test-files)/.test(filename)) {
+							return false;
+						}
+
+						return true;
+					},
 					handlers: {
 						less: {
-							regex: /\.js$/,
+							regex: /.*/,
 							onMatch: [ 'test' ]
 						}
 					}

@@ -34,6 +34,7 @@ function WatchTask(options) {
 	Task.call(this, 'watch', [], {
 		src: src,
 		cwd: cwd,
+		filter: options.filter,
 		type: options.type || 'watch',
 		handlers: handlers
 	});
@@ -68,12 +69,21 @@ Task.extend(WatchTask, {
 		}
 
 		var src = this.options.src,
+			filter = this.options.filter,
 			options = {
 				type: this.options.type,
 				interval: 100,
 				exclude: function(filename, stat) {
 					var basename = path.basename(filename);
-					return basename.charAt(0) === '.';
+					if (basename.charAt(0) === '.') {
+						return true;
+					}
+
+					if (!filter) {
+						return false;
+					}
+
+					return !filter(filename, stat);
 				}
 			};
 
@@ -97,9 +107,27 @@ Task.extend(WatchTask, {
 				var modifiedFiles = [],
 					runningHandlers = false;
 
-				function handleFile(fileName) {
+				function handleFile(fileName, modificationType) {
 					if (modifiedFiles.indexOf(fileName) !== -1) {
+						context.log.debug('already detected change for ' + chalk.yellow(fileName));
 						return;
+					}
+
+					if (self.options.filter && !self.options.filter(fileName)) {
+						context.log.trace('ignoring file ' + chalk.yellow(fileName) + ' due to filter');
+						return;
+					}
+
+					switch (modificationType) {
+						case 'create':
+							context.log.info(chalk.green(fileName) + ' was created');
+							break;
+						case 'delete':
+							context.log.info(chalk.gray(fileName) + ' was deleted');
+							break;
+						case 'modify':
+							context.log.info(chalk.blue(fileName) + ' was modified');
+							break;
 					}
 
 					modifiedFiles.push(fileName);
@@ -109,7 +137,7 @@ Task.extend(WatchTask, {
 						if (runningHandlers) {
 							//wait for handlers to complete, and then start again
 							log.warn('Handlers have not completed, waiting before trying again...');
-							timeoutId = setTimeout(processMatchedFiles, 100);
+							timeoutId = setTimeout(processMatchedFiles, 500);
 							return;
 						}
 
@@ -154,16 +182,13 @@ Task.extend(WatchTask, {
 				}
 
 				monitor.on('modify', function(filename) {
-					log.info('gargoyle: ' + chalk.blue(filename) + ' was modified');
-					handleFile(filename);
+					handleFile(filename, 'modify');
 				});
 				monitor.on('delete', function(filename) {
-					log.info('gargoyle: ' + chalk.gray(filename) + ' was deleted');
-					handleFile(filename);
+					handleFile(filename, 'delete');
 				});
 				monitor.on('create', function(filename) {
-					log.info('gargoyle: ' + chalk.green(filename) + ' was created');
-					handleFile(filename);
+					handleFile(filename, 'create');
 				});
 
 				context.get('monitors').push(monitor);

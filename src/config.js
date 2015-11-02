@@ -57,10 +57,6 @@ Config.prototype = {
 	interpolateObject: function(obj) {
 		var self = this;
 
-		if (!obj) {
-			return '';
-		}
-
 		if (typeof(obj) === 'string') {
 			return this.interpolate(obj);
 		}
@@ -71,14 +67,14 @@ Config.prototype = {
 			});
 		}
 
-		if (typeof(obj) === 'object') {
+		if (obj && typeof(obj) === 'object') {
 			Object.keys(obj).forEach(function(key) {
 				obj[key] = self.interpolateObject(obj[key]);
 			});
 			return obj;
 		}
 
-		return '';
+		return obj;
 	},
 
 	addTargets: function(targets) {
