@@ -1,6 +1,6 @@
 var async = require('async'),
 	domain = require('domain'),
-	util = require('util'),
+	Logger = require('looger').Logger,
 	chalk = require('chalk'),
 	RunContext = require('./run-context');
 
@@ -66,6 +66,10 @@ TaskRunner.prototype = {
 
 		var self = this;
 		this.context.task = task;
+		this.context.log = new Logger(this.context.log.logger, {
+			level: this.context.log.level,
+			prefix: chalk.blue('[' + this.context.task.name + '] ')
+		});
 		this.setState(TaskRunner.state.running);
 
 		function runDependentTask(task, next) {
