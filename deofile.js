@@ -10,15 +10,24 @@ module.exports = function(deo) {
 			shell: {
 				test: {
 					alias: 'test',
+					dependencies: [ 'hello' ],
 					command: 'node_modules/.bin/mocha',
 					args: [ '-R', 'dot', '--recursive', '${dirs.test}' ]
+				},
+				hello: {
+					alias: 'hello',
+					command: 'echo Hello $(whoami)'
+				},
+				time: {
+					command: 'echo',
+					args: [ '${datetimeTz}' ]
 				}
 			},
 			watch: {
 				tests: {
-					src: [ 'tests' ],
+					src: [ 'src', 'tests' ],
 					filter: function(filename) {
-						return !/(tmp|test-files)/.test(filename);
+						return !/(bak|tmp|test-files)/.test(filename);
 					},
 					handlers: {
 						less: {

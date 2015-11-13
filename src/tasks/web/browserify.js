@@ -17,7 +17,7 @@ function BrowserifyTask(src, dest, options) {
 	var cwd = options.cwd || null;
 	delete options.cwd;
 
-	Task.call(this, 'browserify', [], {
+	Task.call(this, 'browserify', {
 		src: src,
 		dest: dest,
 		cwd: cwd,

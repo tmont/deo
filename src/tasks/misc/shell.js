@@ -15,7 +15,7 @@ function ShellTask(options) {
 		throw new Error('Must specify a command');
 	}
 
-	Task.call(this, options.alias || 'shell', [], {
+	Task.call(this, options.alias || 'shell', {
 		command: options.command || null,
 		args: options.args || null,
 		cwd: options.cwd || null,
@@ -34,7 +34,7 @@ Task.extend(ShellTask, {
 		var proc = context.get('proc');
 
 		if (!proc || proc.exitCode !== null) {
-			if (proc.exitCode !== null) {
+			if (proc && proc.exitCode !== null) {
 				context.log.trace('Not killing process, exitCode is defined');
 			}
 			callback();
@@ -58,7 +58,7 @@ Task.extend(ShellTask, {
 			options.env = this.options.env;
 		}
 
-		context.log.debug('Command: ' + chalk.gray(command + ' ' + args.join(' ')));
+		context.log.debug('Command: ' + chalk.gray(command + ' ' + (args || []).join(' ')));
 
 		var forever = !!this.options.forever;
 

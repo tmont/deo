@@ -5,7 +5,7 @@ var Task = require('../../task'),
 
 function DeleteTask(src, options) {
 	options = options || {};
-	Task.call(this, 'del', [], {
+	Task.call(this, 'delete', {
 		src: src,
 		cwd: options.cwd || null
 	});

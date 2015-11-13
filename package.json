@@ -22,7 +22,8 @@
 		"extend": "3.0.0",
 		"fs-extra": "0.24.0",
 		"glob": "5.0.15",
-		"looger": "1.0.0"
+		"looger": "1.0.0",
+		"tarjan-graph": "0.2.0"
 	},
 	"devDependencies": {
 		"browserify": "11.2.0",

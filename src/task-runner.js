@@ -72,81 +72,71 @@ TaskRunner.prototype = {
 		});
 		this.setState(TaskRunner.state.running);
 
-		function runDependentTask(task, next) {
-			new TaskRunner(self.context.createChildContext()).run(task, next);
-		}
-
 		var disposed = false;
 
-		async.eachSeries(task.dependentTasks, runDependentTask, function(err) {
-			function finish(err) {
-				if (task.runForever(self.context)) {
+		function finish(err) {
+			if (task.runForever(self.context)) {
+				callback(err);
+				return;
+			}
+
+			function setStateAndCallBack() {
+				if (err) {
+					self.setState(TaskRunner.state.erred);
 					callback(err);
 					return;
 				}
 
-				function setStateAndCallBack() {
-					if (err) {
-						self.setState(TaskRunner.state.erred);
-						callback(err);
-						return;
-					}
-
-					self.setState(TaskRunner.state.succeeded);
-					callback();
-				}
-
-				if (disposed) {
-					setStateAndCallBack();
-					return;
-				}
-
-				disposed = true;
-				task.dispose(self.context, function() {
-					d && d.exit();
-					setStateAndCallBack();
-				});
+				self.setState(TaskRunner.state.succeeded);
+				callback();
 			}
 
-			if (err) {
+			if (disposed) {
+				setStateAndCallBack();
+				return;
+			}
+
+			disposed = true;
+			task.dispose(self.context, function() {
+				d && d.exit();
+				setStateAndCallBack();
+			});
+		}
+
+
+		var d = domain.create();
+		d.on('error', function(err) {
+			if (disposed) {
 				finish(err);
 				return;
 			}
 
-			var d = domain.create();
-			d.on('error', function(err) {
-				if (disposed) {
-					finish(err);
-					return;
-				}
-
-				disposed = true;
-				task.dispose(self.context, function() {
-					finish(err);
-				});
+			disposed = true;
+			task.dispose(self.context, function() {
+				finish(err);
 			});
+		});
 
-			d.run(function() {
-				if (task.isAsync()) {
-					task.exec(self.context, function(err) {
-						if (err) {
-							finish(err);
-							return;
-						}
-
-						finish();
-					});
-				} else {
-					try {
-						task.exec(self.context);
-					} catch (err) {
+		d.run(function() {
+			if (task.isAsync()) {
+				task.exec(self.context, function(err) {
+					if (err) {
 						finish(err);
 						return;
 					}
 
 					finish();
+				});
+			} else {
+				try {
+					task.exec(self.context);
+				} catch (err) {
+					finish(err);
+					return;
 				}
-			});
+
+				finish();
+			}
 		});
 	}
 };

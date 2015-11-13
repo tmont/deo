@@ -70,12 +70,19 @@ Deo.prototype = {
 		this.config.addTargets(targets);
 		return this;
 	},
-	runTask: function(name, callback) {
+	runTask: function(name, parentContext, callback) {
+		if (typeof(parentContext) === 'function') {
+			callback = parentContext;
+			parentContext = null;
+		}
+
 		var options = {
 			cwd: this.config.getSetting('cwd')
 		};
 		this.log.trace('Creating runner for task ' + chalk.bold(name));
-		var context = new RunContext(this.log, null, options);
+		var context = parentContext ?
+			parentContext.createChildContext() :
+			new RunContext(this.log, null, options);
 		context.deo = this;
 		var runner = new TaskRunner(context);
 		try {
@@ -85,10 +92,22 @@ Deo.prototype = {
 			return;
 		}
 
-		task.options = this.config.interpolateObject(extend({}, task.options));
+		var dependentTaskNames = this.config.getTargetDependencies(name),
+			self = this;
 
-		this.runners.push(runner);
-		runner.run(task, callback);
+		async.eachSeries(dependentTaskNames, function(taskName, next) {
+			self.runTask(taskName, context, next);
+		}, function(err) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			task.options = self.config.interpolateObject(extend({}, task.options));
+
+			self.runners.push(runner);
+			runner.run(task, callback);
+		});
 	},
 	isRunning: function() {
 		return this.runners.some(function(runner) {

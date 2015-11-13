@@ -13,7 +13,7 @@ function CopyTask(src, dest, options) {
 	}
 	options = options || {};
 
-	Task.call(this, 'copy', [], {
+	Task.call(this, 'copy', {
 		src: src,
 		dest: dest,
 		cwd: options.cwd || null

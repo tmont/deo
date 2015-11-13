@@ -1,6 +1,6 @@
 var extend = require('extend');
 
-function Task(name, dependentTasks, options) {
+function Task(name, options) {
 	if (!name) {
 		throw new Error('A name is required');
 	}
@@ -8,7 +8,6 @@ function Task(name, dependentTasks, options) {
 	options = options || {};
 
 	this.name = name;
-	this.dependentTasks = dependentTasks || [];
 	this.options = options;
 	if (this.options.src) {
 		if (!Array.isArray(this.options.src)) {
@@ -18,6 +17,8 @@ function Task(name, dependentTasks, options) {
 }
 
 Task.prototype = {
+	name: '',
+	options: {},
 	exec: function() {
 
 	},

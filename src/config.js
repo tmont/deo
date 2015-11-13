@@ -1,10 +1,12 @@
 var extend = require('extend'),
-	chalk = require('chalk');
+	chalk = require('chalk'),
+	Graph = require('tarjan-graph');
 
 function Config(log) {
 	this.log = log;
 	this.targets = {};
 	this.tasks = {};
+	this.targetGraph = new Graph();
 	this.settings = {
 		interpolationRegex: /\$\{(.+?)}/g,
 		cwd: __dirname
@@ -103,7 +105,7 @@ Config.prototype = {
 
 				targetOptions.alias = realTargetName;
 				var task = new taskCtor(targetOptions);
-				self.registerTaskTarget(realTargetName, task);
+				self.registerTaskTarget(realTargetName, task, targetOptions.dependencies || []);
 			});
 		});
 	},
@@ -118,16 +120,18 @@ Config.prototype = {
 		this.tasks[name] = ctor;
 	},
 
-	registerTaskTarget: function(name, task) {
+	registerTaskTarget: function(name, task, dependencies) {
 		if (name in this.targets) {
 			this.log.warn('Overriding existing target ' + chalk.bold(name));
 		}
 		this.targets[name] = task;
+		this.targetGraph.addAndVerify(name, dependencies || []);
 	},
 
 	registerCustomTarget: function(name, dependencies, definition) {
-		var task = new CustomTask(name, dependencies, definition);
-		this.registerTaskTarget(name, task);
+		//TODO
+		var task = new CustomTask(name, definition);
+		this.registerTaskTarget(name, task, dependencies);
 	},
 
 	getTarget: function(name) {
@@ -136,6 +140,10 @@ Config.prototype = {
 		}
 
 		return this.targets[name];
+	},
+
+	getTargetDependencies: function(name) {
+		return this.targetGraph.getDescendants(name);
 	},
 
 	setProperty: function(key, value) {

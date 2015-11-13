@@ -28,7 +28,7 @@ RunContext.prototype = {
 	},
 
 	createChildContext: function() {
-		var childContext = new RunContext(this.log, this);
+		var childContext = new RunContext(this.log, this, { cwd: this.file.cwd });
 		this.childContexts.push(childContext);
 		return childContext;
 	},

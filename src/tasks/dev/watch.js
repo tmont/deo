@@ -31,7 +31,7 @@ function WatchTask(options) {
 		}
 	});
 
-	Task.call(this, 'watch', [], {
+	Task.call(this, 'watch', {
 		src: src,
 		cwd: cwd,
 		filter: options.filter,
@@ -64,7 +64,7 @@ Task.extend(WatchTask, {
 		try {
 			var gargoyle = require('gargoyle');
 		} catch (e) {
-			callback(new Error('Gargoyle module is not loaded'));
+			callback(new Error('Gargoyle module could not be loaded: ' + e.message));
 			return;
 		}
 

@@ -22,7 +22,7 @@ function LessTask(options) {
 	delete options.src;
 	delete options.dest;
 
-	Task.call(this, 'less', [], {
+	Task.call(this, 'less', {
 		src: src,
 		dest: dest,
 		cwd: cwd,
