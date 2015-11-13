@@ -41,7 +41,7 @@ Task.extend(ShellTask, {
 			return;
 		}
 
-		context.log.info('Killing running process using signal ' + chalk.magenta(this.options.killSignal));
+		context.log.debug('Killing running process using signal ' + chalk.magenta(this.options.killSignal));
 		proc.kill(this.options.killSignal);
 		callback();
 	},
@@ -60,7 +60,7 @@ Task.extend(ShellTask, {
 
 		context.log.debug('Command: ' + chalk.gray(command + ' ' + (args || []).join(' ')));
 
-		var forever = !!this.options.forever;
+		var forever = this.runForever();
 
 		var proc;
 		if (!args) {
