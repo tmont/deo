@@ -70,43 +70,40 @@ Deo.prototype = {
 		this.config.addTargets(targets);
 		return this;
 	},
-	runTask: function(name, parentContext, callback) {
-		if (typeof(parentContext) === 'function') {
-			callback = parentContext;
-			parentContext = null;
-		}
-
+	runTask: function(name, callback) {
 		var options = {
 			cwd: this.config.getSetting('cwd')
 		};
-		this.log.trace('Creating runner for task ' + chalk.bold(name));
-		var context = parentContext ?
-			parentContext.createChildContext() :
-			new RunContext(this.log, null, options);
-		context.deo = this;
-		var runner = new TaskRunner(context);
-		try {
-			var task = this.config.getTarget(name);
-		} catch (e) {
-			callback(e);
-			return;
+		var context = new RunContext(this.log, null, options);
+		var self = this;
+
+		function runTask(name, context, callback) {
+			self.log.trace('Creating runner for task ' + chalk.bold(name));
+			context.deo = self;
+			var runner = new TaskRunner(context);
+			try {
+				var task = self.config.getTarget(name);
+			} catch (e) {
+				callback(e);
+				return;
+			}
+
+			task.options = self.config.interpolateObject(extend({}, task.options));
+			self.runners.push(runner);
+			runner.run(task, callback);
 		}
 
-		var dependentTaskNames = this.config.getTargetDependencies(name),
-			self = this;
-
+		var dependentTaskNames = this.config.getTargetDependencies(name);
+		this.log.trace('Dependent tasks: ' + chalk.yellow(dependentTaskNames.join(', ')));
 		async.eachSeries(dependentTaskNames, function(taskName, next) {
-			self.runTask(taskName, context, next);
+			runTask(taskName, context.createChildContext(), next);
 		}, function(err) {
 			if (err) {
 				callback(err);
 				return;
 			}
 
-			task.options = self.config.interpolateObject(extend({}, task.options));
-
-			self.runners.push(runner);
-			runner.run(task, callback);
+			runTask(name, context, callback);
 		});
 	},
 	isRunning: function() {
