@@ -16,13 +16,13 @@
 	},
 	"dependencies": {
 		"array-unique": "0.2.1",
-		"async": "1.4.2",
+		"async": "1.5.0",
 		"chalk": "1.1.1",
-		"commander": "2.8.1",
+		"commander": "2.9.0",
 		"extend": "3.0.0",
-		"fs-extra": "0.24.0",
-		"glob": "5.0.15",
-		"looger": "1.0.0",
+		"fs-extra": "0.26.2",
+		"glob": "6.0.1",
+		"looger": "1.1.1",
 		"tarjan-graph": "0.2.0"
 	},
 	"devDependencies": {
