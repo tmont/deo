@@ -1,5 +1,5 @@
 {
-	"name": "deo",
+	"name": "deo-build",
 	"version": "0.0.1",
 	"description": "Another task-based build system",
 	"keywords": [ "build", "task" ],
