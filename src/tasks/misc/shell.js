@@ -15,6 +15,8 @@ function ShellTask(options) {
 		throw new Error('Must specify a command');
 	}
 
+	this.completed = false;
+
 	Task.call(this, options.alias || 'shell', {
 		command: options.command || null,
 		args: options.args || null,
@@ -33,10 +35,13 @@ Task.extend(ShellTask, {
 	dispose: function(context, callback) {
 		var proc = context.get('proc');
 
-		if (!proc || proc.exitCode !== null) {
-			if (proc && proc.exitCode !== null) {
-				context.log.trace('Not killing process, exitCode is defined');
-			}
+		if (this.completed) {
+			context.log.trace('dispose: process completed, nothing to do');
+			callback();
+			return;
+		}
+		if (!proc) {
+			context.log.trace('dispose: process was never created, nothing to do');
 			callback();
 			return;
 		}
@@ -62,9 +67,11 @@ Task.extend(ShellTask, {
 
 		var forever = this.runForever();
 
-		var proc;
+		var proc,
+			self = this;
 		if (!args) {
 			proc = exec(command, options, function(err, stdout, stderr) {
+				self.completed = true;
 				if (stdout) {
 					context.log.info(stdout);
 				}
@@ -98,6 +105,7 @@ Task.extend(ShellTask, {
 				context.log.warn(data);
 			});
 			proc.on('close', function(code) {
+				self.completed = true;
 				context.log.debug('Child process finished with code ' + chalk.bold(code));
 				if (!forever) {
 					if (code !== 0) {
