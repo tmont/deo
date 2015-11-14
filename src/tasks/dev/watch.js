@@ -136,8 +136,7 @@ Task.extend(WatchTask, {
 					timeoutId = setTimeout(function processMatchedFiles() {
 						if (runningHandlers) {
 							//wait for handlers to complete, and then start again
-							log.warn('Handlers have not completed, waiting before trying again...');
-							timeoutId = setTimeout(processMatchedFiles, 500);
+							timeoutId = setTimeout(processMatchedFiles, 100);
 							return;
 						}
 
