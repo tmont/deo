@@ -72,23 +72,31 @@ TaskRunner.prototype = {
 		});
 		this.setState(TaskRunner.state.running);
 
-		var disposed = false;
+		var disposed = false,
+			completed = false;
 
 		function finish(err) {
+			function runCallback(err) {
+				if (!completed) {
+					completed = true;
+					callback(err);
+				}
+			}
+
 			if (task.runForever(self.context)) {
-				callback(err);
+				runCallback(err);
 				return;
 			}
 
 			function setStateAndCallBack() {
 				if (err) {
 					self.setState(TaskRunner.state.erred);
-					callback(err);
+					runCallback(err);
 					return;
 				}
 
 				self.setState(TaskRunner.state.succeeded);
-				callback();
+				runCallback();
 			}
 
 			if (disposed) {
@@ -102,7 +110,6 @@ TaskRunner.prototype = {
 				setStateAndCallBack();
 			});
 		}
-
 
 		var d = domain.create();
 		d.on('error', function(err) {

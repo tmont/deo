@@ -23,7 +23,7 @@ function Config(log) {
 			var d = new Date();
 			function pad(value, pow) {
 				pow = pow || 1;
-				return value < Math.pow(10, pow) ? '0' + value : value;
+				return value < Math.pow(10, pow) ? new Array(pow + 1).join('0') + value : value;
 			}
 
 			var date = [ d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate()) ].join('-');
@@ -37,6 +37,7 @@ function Config(log) {
 
 Config.prototype = {
 	interpolate: function(str) {
+		str = (str || '').toString();
 		var log = this.log;
 		var self = this;
 		var regex = this.getSetting('interpolationRegex');
@@ -187,7 +188,7 @@ Config.prototype = {
 			value = value();
 		}
 
-		return value;
+		return this.interpolate(value);
 	},
 
 	setSetting: function(key, value) {
