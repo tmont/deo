@@ -1,6 +1,6 @@
 {
 	"name": "deo-build",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Another task-based build system",
 	"keywords": [ "build", "task" ],
 	"author": "Tommy Montgomery <tmont@tmont.com> (http://tmont.com/)",
